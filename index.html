@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iHear - የአማርኛ ድምፅ ቴክኖሎጂ</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=Wg4PIQ6Y"></script>
+    <style>
+        @font-face {
+            font-family: 'Jegena Title';
+            src: url('fonts/JegenaTitle-zamaric.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'SurGraphics';
+            src: url('fonts/SurGraphics-Regural.ttf') format('truetype');
+        }
+        body {
+            font-family: 'SurGraphics', sans-serif;
+        }
+        button {
+            font-family: 'SurGraphics', sans-serif;
+        }
+        
+        #audio-player-container {
+            margin-top: 15px;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--surface-hover);
+            border-radius: 8px;
+        }
+        
+        .tts-audio-player {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            background-color: var(--surface);
+            color: var(--text);
+        }
+        
+        /* Custom audio player controls */
+        audio::-webkit-media-controls-panel {
+            background-color: var(--surface);
+        }
+        
+        audio::-webkit-media-controls-play-button {
+            background-color: var(--primary);
+            border-radius: 50%;
+        }
+        
+        audio::-webkit-media-controls-current-time-display,
+        audio::-webkit-media-controls-time-remaining-display {
+            color: var(--text);
+        }
+        
+        /* Direct TTS link */
+        .direct-tts-link {
+            display: block;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .nav-controls {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        
+        /* Icon buttons */
+        .icon-button {
+            background: none;
+            border: none;
+            color: var(--text);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .icon-button:hover {
+            background-color: var(--surface-hover);
+        }
+        
+        .icon-button svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .male-icon, .female-icon {
+            width: 24px;
+            height: 24px;
+            position: absolute;
+            transition: opacity 0.3s ease;
+        }
+        
+        .male-icon {
+            opacity: 1;
+        }
+        
+        .female-icon {
+            opacity: 0;
+        }
+        
+        .voice-toggle.female .male-icon {
+            opacity: 0;
+        }
+        
+        .voice-toggle.female .female-icon {
+            opacity: 1;
+        }
+        
+        .voice-toggle {
+            position: relative;
+        }
+        
+        .landing-hero {
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--surface);
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+        
+        .landing-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at top right, rgba(255, 87, 34, 0.3), transparent 70%);
+            z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ff5722' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .landing-hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards 0.3s;
+        }
+        
+        .landing-hero p {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards 0.6s;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards 0.9s;
+        }
+        
+        .cta-button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(255, 87, 34, 0.3), 0 2px 4px -1px rgba(255, 87, 34, 0.06);
+        }
+        
+        .cta-secondary {
+            background-color: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        
+        .cta-button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .cta-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .cta-secondary:hover {
+            background-color: var(--surface-hover);
+        }
+        
+        .cta-button:hover::after {
+            transform: translateX(100%);
+        }
+        
+        .features-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .feature-card {
+            background-color: var(--surface);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            transition: transform 0.3s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s forwards;
+        }
+        
+        .feature-card:nth-child(1) {
+            animation-delay: 1.2s;
+        }
+        
+        .feature-card:nth-child(2) {
+            animation-delay: 1.4s;
+        }
+        
+        .feature-card:nth-child(3) {
+            animation-delay: 1.6s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .auth-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s forwards;
+        }
+        
+        .auth-container {
+            background-color: var(--surface);
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            position: relative;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.5s forwards 0.2s;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: color 0.2s;
+        }
+        
+        .close-modal:hover {
+            color: var(--text);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+        
+        .auth-tab {
+            padding: 0.75rem 1rem;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .auth-tab.active {
+            color: var(--primary);
+        }
+        
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background-color: var(--background);
+            color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(255, 87, 34, 0.2);
+        }
+        
+        .form-submit {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        
+        .form-submit:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .form-error {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .browser-warning {
+            display: none;
+            background-color: var(--warning);
+            color: #1f2937;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .landing-hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .landing-hero p {
+                font-size: 1.125rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            background-color: var(--surface);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+        
+        .login-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .login-logo {
+            width: 40px;
+            height: 40px;
+            fill: var(--primary);
+        }
+        
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .form-input {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background-color: var(--surface-hover);
+            color: var(--text);
+            font-family: 'SurGraphics', sans-serif;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(255, 87, 34, 0.2);
+        }
+        
+        .login-button {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .login-button:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .demo-users {
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+        
+        .demo-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .demo-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--surface-hover);
+            color: var(--text);
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .demo-button:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="login-container">
+        <div class="login-header">
+            <svg class="login-logo" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8zM9.5,16.5v-9l7,4.5 -7,4.5z"/>
+                </svg>
+            <div class="login-title">iHear - የአማርኛ ድምፅ ቴክኖሎጂ</div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <p>እባክዎ ከታች ካሉት ስሞች ይምረጡ:</p>
+        </div>
+        
+        <div class="demo-users">
+            <div class="demo-buttons" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                <button class="demo-button" data-user="አበበ">አበበ</button>
+                <button class="demo-button" data-user="ከበደ">ከበደ</button>
+                <button class="demo-button" data-user="ብርሃን">ብርሃን</button>
+                <button class="demo-button" data-user="ፍቅርተ">ፍቅርተ</button>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center; color: var(--text-secondary); padding: 10px; border-radius: 5px; background-color: var(--surface-hover);">
+                <p style="margin-bottom: 5px; font-weight: bold;">በቅርብ ጊዜ የሚመጡ ባህሪያት:</p>
+                <p style="font-size: 0.9rem; margin: 0;">የድምፅ ትንተና ማሻሻያዎች, አማርኛ ቋንቋ ማሻሻያዎች, ቅንብሮች, እና ተጨማሪ ድምፆች</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = localStorage.getItem('ihear_current_user');
+            if (currentUser) {
+                window.location.href = 'speech.html';
+            }
+            
+            const demoButtons = document.querySelectorAll('.demo-button');
+            demoButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const username = this.dataset.user;
+                    
+                    const user = {
+                        name: username,
+                        loggedInAt: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('ihear_current_user', JSON.stringify(user));
+                    
+                    window.location.href = 'speech.html';
+                });
+            });
+            
+            document.body.classList.add('dark-mode');
+            document.body.classList.remove('light-mode');
+        });
+    </script>
+</body>
+</html>

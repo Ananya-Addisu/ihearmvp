@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iHear - የአማርኛ ድምፅ ቴክኖሎጂ</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=Wg4PIQ6Y"></script>
+    <style>
+        @font-face {
+            font-family: 'SurGraphics';
+            src: url('fonts/SurGraphics-Regural.ttf') format('truetype');
+        }
+        
+        body, button, input, textarea {
+            font-family: 'SurGraphics', sans-serif;
+        }
+        
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo {
+            width: 32px;
+            height: 32px;
+            fill: var(--primary);
+        }
+        
+        .nav-divider {
+            height: 24px;
+            width: 1px;
+            background-color: var(--border);
+            margin: 0 5px;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background-color: var(--surface-hover);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .user-profile:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Voice toggle styles */
+        .voice-toggle {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .male-icon, .female-icon {
+            width: 24px;
+            height: 24px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+            fill: white;
+            stroke: white;
+        }
+        
+        .male-icon {
+            opacity: 1;
+            width: 30px;
+            height: 30px;
+            transform: translate(-50%, -50%) scale(0.7);
+            transform-origin: center;
+        }
+        
+        .female-icon {
+            opacity: 0;
+            width: 30px;
+            height: 30px;
+            transform: translate(-50%, -50%) scale(0.7);
+            transform-origin: center;
+        }
+        
+        .voice-toggle.female .male-icon {
+            opacity: 0;
+        }
+        
+        .voice-toggle.female .female-icon {
+            opacity: 1;
+        }
+    </style>
+    <style>
+        /* Make all SVG icons white */
+        .icon-button svg path,
+        .mode-button svg path,
+        .action-button svg path {
+            fill: white !important;
+            stroke: white !important;
+        }
+    </style>
+    <style>
+        /* Add these styles */
+        #interim-results {
+            min-height: 24px;
+            padding: 5px 0;
+            font-family: 'SurGraphics', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        #transcript {
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'SurGraphics', sans-serif;
+            resize: vertical;
+        }
+        
+        #recognition-status {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .recording-active #transcript {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(255, 87, 34, 0.2);
+        }
+        
+        #start-recognition {
+            transition: all 0.3s ease;
+        }
+        
+        #start-recognition.recording {
+            background-color: #f44336;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+            }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <nav class="navbar">
+        <div class="nav-brand-container">
+            <svg class="logo" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,20c-4.41,0 -8,-3.59 -8,-8s3.59,-8 8,-8 8,3.59 8,8 -3.59,8 -8,8zM9.5,16.5v-9l7,4.5 -7,4.5z"/>
+            </svg>
+            <div class="nav-brand">iHear</div>
+            <div class="nav-divider"></div>
+            <span class="version-tag">v1.0</span>
+        </div>
+        <div class="nav-controls">
+            <div class="user-profile">
+                <div class="user-avatar">A</div>
+                <span class="username">አበበ</span>
+            </div>
+            <button id="logout-button" class="action-button">
+                <span>ውጣ</span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <div class="mode-switcher">
+            <button class="mode-button active" data-mode="speech-to-text">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path fill="currentColor" d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                ድምፅ ወደ ጽሑፍ
+            </button>
+            <button class="mode-button" data-mode="text-to-speech">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                ጽሑፍ ወደ ድምፅ
+            </button>
+        </div>
+
+        <div class="content-area">
+            <div id="speech-to-text-section" class="section active">
+                <div class="input-group">
+                    <div class="input-header">
+                        <h2>ከድምጽ ወደ ጽሁፍ</h2>
+                        <div class="input-stats">
+                            <div class="stat">
+                                <span class="stat-label">ትክክለኛነት</span>
+                                <span class="stat-value">98.2%</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">ምላሽ</span>
+                                <span class="stat-value">0.3s</span>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea id="transcript" class="text-area" placeholder="እዚህ የእርስዎ ንግግር ይታያል..." readonly></textarea>
+                    <div class="controls">
+                        <button id="start-recognition" class="action-button">
+                            <svg class="mic-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/></svg>
+                            <span class="button-text">መቅዳት ጀምር</span>
+                        </button>
+                        <div id="recognition-status" class="status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="text-to-speech-section" class="section">
+                <div class="input-group">
+                    <div class="input-header">
+                        <h2>ከጽሑፍ ወደ ድምፅ</h2>
+                        <div class="input-stats">
+                            <div class="stat">
+                                <span class="stat-label">ድምፅ</span>
+                                <span class="stat-value" data-stat="voice-type">ወንድ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea id="text-to-speech" class="text-area" placeholder="እዚህ ጽፈው iHear ያንብብልዎታል..."></textarea>
+                    <div class="controls">
+                        <button id="speak-text" class="action-button">
+                            <svg class="speak-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                            <span class="button-text">ጽሑፍ አንብብ</span>
+                        </button>
+                        <button id="voice-toggle" class="icon-button voice-toggle" aria-label="Toggle voice gender" title="ድምፅ ይቀይሩ (ወንድ/ሴት)">
+                            <svg class="male-icon" viewBox="0 0 24 24">
+                                <path fill="white" d="M12 2C9.8 2 8 3.8 8 6s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm8 7c-.7-1.2-1.8-2-3-2.4v-.6c0-.9-.6-1.7-1.5-1.9C14.5 9.7 13.3 9.5 12 9.5s-2.5.2-3.5.6c-.9.2-1.5 1-1.5 1.9v.6c-1.2.4-2.3 1.2-3 2.4-.7 1.3-1 2.7-1 4.2V22h16v-2.8c0-1.5-.3-2.9-1-4.2zm-9 1v-2h2v2h2v2h-2v2h-2v-2H9v-2h2zm7 4H6v-.8c0-1 .2-1.9.6-2.7.2-.4.5-.7.9-1.1.2.6.6 1.1 1.1 1.5.8.5 1.8.9 2.9 1 .2.3.4.5.7.8.5.5 1.2.8 1.8.8s1.3-.3 1.8-.8c.3-.2.5-.5.7-.8 1.1-.2 2.1-.5 2.9-1 .5-.3.9-.9 1.1-1.5.4.3.6.7.9 1.1.4.8.6 1.7.6 2.7v.8z"/>
+                            </svg>
+                            <svg class="female-icon" viewBox="0 0 24 24">
+                                <path fill="white" d="M12 2C9.8 2 8 3.8 8 6s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm1.5 3h-3c-1.7 0-3 1.3-3 3v4.2c0 .4.3.8.8.8h.7v3c0 .6.4 1 1 1h4c.6 0 1-.4 1-1v-3h.7c.4 0 .8-.3.8-.8V11c0-1.7-1.3-3-3-3z"/>
+                            </svg>
+                        </button>
+                        <div id="synthesis-status" class="status"></div>
+                    </div>
+                    <div id="transliteration-container" style="display: none; margin-top: 15px; padding: 15px; background-color: var(--surface-hover); border-radius: 8px;">
+                        <div style="margin-bottom: 8px; font-weight: bold;">Transliteration:</div>
+                        <div id="transliteration-text" style="font-family: monospace; white-space: pre-wrap;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="speech.js"></script>
+</body>
+</html> 
