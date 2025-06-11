@@ -122,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const transliterationContainer = document.getElementById('transliteration-container');
     const transliterationText = document.getElementById('transliteration-text');
     
-    // Create a div for interim results
     const interimResults = document.createElement('div');
     interimResults.id = 'interim-results';
     interimResults.style.color = 'var(--text-secondary)';
@@ -130,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
     interimResults.style.marginBottom = '10px';
     interimResults.style.fontStyle = 'italic';
     
-    // Insert the interim results div before the transcript textarea
     transcript.parentNode.insertBefore(interimResults, transcript);
     
     startBtn.addEventListener('click', async () => {
@@ -141,17 +139,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Clear previous results
             transcript.value = '';
             interimResults.textContent = '';
             
-            // Start recognition almost immediately
             status.textContent = 'iHear እያዳመጠ ነው...';
             startBtn.classList.add('recording');
             startBtn.querySelector('.button-text').textContent = 'ማቆም';
             document.getElementById('speech-to-text-section').classList.add('recording-active');
             
-            // Start recognition with minimal delay
             setTimeout(() => {
                 recognition.start();
             updateRecognitionStats();
@@ -174,12 +169,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Display interim results with lower opacity
         interimResults.textContent = interimTranscript;
         
-        // Update the final transcript
         if (finalTranscript) {
-            // Append to existing transcript
+
             document.getElementById('transcript').value += finalTranscript;
         }
         
@@ -192,7 +185,6 @@ document.addEventListener('DOMContentLoaded', function() {
         startBtn.querySelector('.button-text').textContent = 'መቅዳት ጀምር';
         document.getElementById('speech-to-text-section').classList.remove('recording-active');
         
-        // Clear interim results when done
         interimResults.textContent = '';
     };
 
@@ -258,15 +250,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Try to load voices immediately
     loadVoices();
 
-    // Set up event for when voices are ready
     if (speechSynth.onvoiceschanged !== undefined) {
         speechSynth.onvoiceschanged = loadVoices;
     }
 
-    // Fallback for browsers where onvoiceschanged might not fire
     setTimeout(loadVoices, 500);
     setTimeout(loadVoices, 1000);
     setTimeout(loadVoices, 2000);
@@ -318,37 +307,31 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             if (!text) return;
             
-            // Cancel any ongoing speech
             if (speechSynth.speaking) {
                 speechSynth.cancel();
             }
             
-            // Limit text length to prevent freezing
             if (text.length > 100) {
                 text = text.substring(0, 100);
             }
             
             synthesisStatus.textContent = 'እየተነበበ ነው...';
-            
-            // Transliterate Amharic to English phonetics
+        
             const transliteratedText = transliterateAmharic(text);
             transliterationText.textContent = transliteratedText;
             transliterationContainer.style.display = 'block';
             
-            // Create speech utterance
             const utterance = new SpeechSynthesisUtterance(transliteratedText);
             utterance.lang = 'en-US';
-            utterance.rate = 0.8;  // Slow down a bit for better pronunciation
+            utterance.rate = 0.8;
             utterance.pitch = isFemale ? 1.1 : 0.9;
             utterance.volume = 1;
             
-            // Get appropriate voice
             const voice = getVoice(isFemale);
             if (voice) {
                 utterance.voice = voice;
             }
             
-            // Handle speech events
             utterance.onend = () => {
                 synthesisStatus.textContent = '';
                 currentUtterance = null;
@@ -360,10 +343,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentUtterance = null;
             };
             
-            // Store current utterance and speak
             currentUtterance = utterance;
             
-            // Use setTimeout to prevent immediate execution that might cause freezing
             setTimeout(() => {
                 speechSynth.speak(utterance);
             }, 50);
@@ -388,33 +369,27 @@ document.addEventListener('DOMContentLoaded', function() {
     let lastProcessedText = '';
     
     textToSpeak.addEventListener('input', () => {
-        // Always update transliteration immediately for better UX
         const text = textToSpeak.value.trim();
         
-        // Update transliteration even if we don't speak yet
         if (text) {
             const transliteratedText = transliterateAmharic(text);
             transliterationText.textContent = transliteratedText;
             transliterationContainer.style.display = 'block';
         } else {
             transliterationContainer.style.display = 'none';
-            return; // Don't process empty text further
+            return;
         }
         
-        // Don't reprocess the same text
         if (text === lastProcessedText) {
             return;
         }
         
-        // Cancel any ongoing speech
         if (speechSynth.speaking) {
             speechSynth.cancel();
         }
         
-        // Cancel any pending speech
         clearTimeout(typingTimer);
         
-        // Schedule new speech with delay
         typingTimer = setTimeout(() => {
             lastProcessedText = text;
             speakText(text, isFemaleVoice);
